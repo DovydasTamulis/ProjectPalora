@@ -4,12 +4,10 @@ import com.pal.model.User;
 import com.pal.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
 public class UserService {
-
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -19,9 +17,20 @@ public class UserService {
     }
 
     public User registerUser(User user) {
+        Optional<User> existingUserByEmail = userRepository.findByEmail(user.getEmail());
+        if (existingUserByEmail.isPresent()) {
+            throw new IllegalArgumentException("Email is already registered.");
+        }
+
+        Optional<User> existingUserByUsername = userRepository.findByUsername(user.getUsername());
+        if (existingUserByUsername.isPresent()) {
+            throw new IllegalArgumentException("Username is already taken.");
+        }
+
         user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         return userRepository.save(user);
     }
+
 
     public boolean authenticateUser(String email, String rawPassword) {
         Optional<User> user = userRepository.findByEmail(email);

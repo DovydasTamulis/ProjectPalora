@@ -20,8 +20,12 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-        User registeredUser = userService.registerUser(user);
-        return ResponseEntity.ok(registeredUser);
+        try {
+            User registeredUser = userService.registerUser(user);
+            return ResponseEntity.ok(registeredUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
@@ -29,9 +33,10 @@ public class UserController {
         boolean isAuthenticated = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPasswordHash());
         if (isAuthenticated) {
             String token = jwtUtil.generateToken(loginRequest.getEmail());
-            return ResponseEntity.ok(Map.of("token", token));
+            return ResponseEntity.ok(token);
         } else {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
+
 }

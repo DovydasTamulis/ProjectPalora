@@ -5,6 +5,7 @@ import com.pal.service.PalTaskService;
 import com.pal.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +19,9 @@ public class PalTaskController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<PalTask>> getTasksByUserId(@PathVariable String userId, @RequestHeader("Authorization") String token) {
+    @GetMapping
+    public ResponseEntity<List<PalTask>> getTasksByUserId() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(taskService.getTasksByUserId(userId));
     }
 
