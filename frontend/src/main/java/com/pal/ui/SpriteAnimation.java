@@ -7,7 +7,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
-
 public class SpriteAnimation {
     private final ImageView imageView;
     private final Timeline timeline;
@@ -21,13 +20,23 @@ public class SpriteAnimation {
     }
 
     private void nextFrame() {
-        // Example: Cycle through 4 frames horizontally
         Rectangle2D viewport = imageView.getViewport();
-        double newX = (viewport.getMinX() + 64) % 256; // 64px per frame, 4 frames
-        imageView.setViewport(new Rectangle2D(newX, 0, 64, 64));
+        if (viewport == null) {
+            System.err.println("Error: ImageView's viewport is null. Stopping animation.");
+            timeline.stop(); // Stop the animation to prevent further errors
+            return;
+        }
+
+        // Cycle through 4 frames horizontally
+        double newX = (viewport.getMinX() + 128) % 512; // 64px per frame, 4 frames
+        imageView.setViewport(new Rectangle2D(newX, 0, 128, 128));
     }
 
     public void play() {
         timeline.play();
+    }
+
+    public void stop() {
+        timeline.stop();
     }
 }
