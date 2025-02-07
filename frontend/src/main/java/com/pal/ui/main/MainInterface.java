@@ -1,7 +1,8 @@
 package com.pal.ui.main;
 
 import com.pal.ui.MainApp;
-import com.pal.ui.SpriteAnimation;
+import com.pal.ui.sprite.SpriteAnimation;
+import com.pal.ui.task.TaskScreen;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -49,6 +50,7 @@ public class MainInterface {
         } else {
             System.out.println("Image loaded successfully.");
         }
+
         // Create an ImageView for the sprite sheet
         characterView = new ImageView(characterSheet);
 
@@ -74,8 +76,8 @@ public class MainInterface {
     }
 
     private void showTasksView() {
-        // Call the MainApp's showTaskScreen method to display the TaskScreen
-        mainApp.showTaskScreen();
+        TaskScreen taskScreen = new TaskScreen(mainApp);
+        root.setCenter(taskScreen);
     }
 
     public Scene getScene() {

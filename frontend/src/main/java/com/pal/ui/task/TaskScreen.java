@@ -1,23 +1,30 @@
 package com.pal.ui.task;
 
-import com.pal.ui.ApiClient;
+import com.pal.ui.api.ApiClient;
 import com.pal.ui.MainApp;
-import com.pal.ui.Task;
+import com.pal.ui.model.Task;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.time.LocalDateTime;
 import java.util.List;
 
+
 public class TaskScreen extends VBox {
+    private static final Logger log = LoggerFactory.getLogger(TaskScreen.class);
     private final MainApp mainApp;
-    private TableView<Task> taskTable = new TableView<>(); // Use CustomTask instead of PalTask
-    private final ObservableList<Task> tasks = FXCollections.observableArrayList(); // Use CustomTask
+    private TableView<Task> taskTable = new TableView<>();
+    private final ObservableList<Task> tasks = FXCollections.observableArrayList();
 
     public TaskScreen(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -26,7 +33,6 @@ public class TaskScreen extends VBox {
     }
 
     private void initializeUI() {
-        // Initialize UI components (e.g., table columns, buttons)
         TableColumn<Task, String> titleColumn = new TableColumn<>("Title");
         titleColumn.setCellValueFactory(cellData -> cellData.getValue().titleProperty());
 
@@ -39,25 +45,20 @@ public class TaskScreen extends VBox {
         TableColumn<Task, String> statusColumn = new TableColumn<>("Status");
         statusColumn.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
 
-        TableColumn<Task, Number> durationCol = new TableColumn<>("Duration (min)");
-        durationCol.setCellValueFactory(cellData -> cellData.getValue().durationProperty().divide(60));
+        TableColumn<Task, Long> durationCol = new TableColumn<>("Duration (min)");
+        durationCol.setCellValueFactory(cellData -> cellData.getValue().durationProperty().divide(60).asObject());
 
-        TableColumn<Task, Number> elapsedCol = new TableColumn<>("Elapsed (min)");
-        elapsedCol.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty().divide(60));
+        TableColumn<Task, Long> elapsedCol = new TableColumn<>("Elapsed (min)");
+        elapsedCol.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty().divide(60).asObject());
 
-        TableColumn<Task, String> expiresCol = new TableColumn<>("Expires At");
-        expiresCol.setCellValueFactory(cellData -> cellData.getValue().expiresAtProperty().asString());
+        TableColumn<Task, LocalDateTime> expiresCol = new TableColumn<>("Expires At");
+        expiresCol.setCellValueFactory(cellData -> cellData.getValue().expiresAtProperty());
 
-        taskTable.getColumns().addAll(titleColumn, descriptionColumn, completedColumn, statusColumn);
+        taskTable.getColumns().addAll(titleColumn, descriptionColumn, completedColumn, statusColumn, durationCol, elapsedCol, expiresCol);
         taskTable.setItems(tasks);
 
         Button createButton = new Button("Create Task");
-        createButton.setOnAction(e -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Create Task");
-            dialog.setHeaderText("Enter task title:");
-            dialog.showAndWait().ifPresent(title -> createTask(title));
-        });
+        createButton.setOnAction(e -> createTaskDialog());
 
         Button startButton = new Button("Start Task");
         startButton.setOnAction(e -> startSelectedTask());
@@ -68,17 +69,25 @@ public class TaskScreen extends VBox {
         Button deleteButton = new Button("Delete Task");
         deleteButton.setOnAction(e -> deleteSelectedTask());
 
-        getChildren().addAll(taskTable, createButton, startButton, pauseButton, deleteButton);
+        HBox buttonBar = new HBox(10, createButton, startButton, pauseButton, deleteButton);
+
+        getChildren().addAll(taskTable, buttonBar);
     }
 
-    private void createTask() {
+    private void createTaskDialog() {
         Dialog<Task> dialog = new Dialog<>();
         dialog.setTitle("Create New Task");
 
         GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 20, 20, 20));
+
         TextField titleField = new TextField();
+        titleField.setPromptText("Enter task title");
         TextField descriptionField = new TextField();
-        Spinner<Integer> durationSpinner = new Spinner<>(1, 240, 30); // 30 minutes default
+        descriptionField.setPromptText("Enter task description");
+        Spinner<Integer> durationSpinner = new Spinner<>(1, 240, 30); // Default duration: 30 minutes
 
         grid.add(new Label("Title:"), 0, 0);
         grid.add(titleField, 1, 0);
@@ -88,6 +97,7 @@ public class TaskScreen extends VBox {
         grid.add(durationSpinner, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
+
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         dialog.setResultConverter(buttonType -> {
@@ -96,12 +106,12 @@ public class TaskScreen extends VBox {
                         null,
                         titleField.getText(),
                         descriptionField.getText(),
-                        durationSpinner.getValue() * 60L, // Convert minutes to seconds
-                        0L, // Initial elapsed time
+                        durationSpinner.getValue() * 60L,
+                        0L,
                         false,
                         "CREATED",
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now().plusMinutes(durationSpinner.getValue())
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusMinutes(durationSpinner.getValue())
                 );
             }
             return null;
@@ -111,12 +121,12 @@ public class TaskScreen extends VBox {
             try {
                 Task createdTask = ApiClient.createTask(mainApp.getAuthToken(), newTask);
                 tasks.add(createdTask);
+                log.info("Task created successfully: {}", createdTask.getTitle());
             } catch (Exception e) {
                 showAlert("Creation Error", e.getMessage());
             }
         });
     }
-
 
     private void deleteSelectedTask() {
         Task selected = taskTable.getSelectionModel().getSelectedItem();
@@ -148,24 +158,10 @@ public class TaskScreen extends VBox {
 
     private void loadTasks() {
         try {
-            List<Task> userTasks = ApiClient.getTasks(mainApp.getAuthToken()); // Returns CustomTask objects
+            List<Task> userTasks = ApiClient.getTasks(mainApp.getAuthToken());
             tasks.setAll(userTasks);
         } catch (Exception e) {
             showAlert("Error Loading Tasks", e.getMessage());
-        }
-    }
-
-    private void createTask(String title) {
-        if (title.isEmpty()) {
-            showAlert("Error", "Title is required");
-            return;
-        }
-        Task newTask = new Task(null, title, "", false, "created"); // Create a CustomTask object
-        try {
-            Task createdTask = ApiClient.createTask(mainApp.getAuthToken(), newTask); // Pass CustomTask
-            tasks.add(createdTask);
-        } catch (Exception e) {
-            showAlert("Error Creating Task", e.getMessage());
         }
     }
 
@@ -197,8 +193,13 @@ public class TaskScreen extends VBox {
                     try {
                         Task updated = ApiClient.tickTime(mainApp.getAuthToken(), task.getId(), 1);
                         updateTaskInList(updated);
+                        // Stop timer if task is completed or expired
+                        if (updated.isCompleted() || updated.getExpiresAt().isBefore(LocalDateTime.now())) {
+                            ((Timeline) e.getSource()).stop();
+                        }
                     } catch (Exception ex) {
                         showAlert("Timer Error", ex.getMessage());
+                        ((Timeline) e.getSource()).stop();
                     }
                 })
         );

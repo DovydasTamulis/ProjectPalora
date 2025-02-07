@@ -4,7 +4,9 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+
 @Setter
 @Getter
 @Document(collection = "tasks")
@@ -19,8 +21,8 @@ public class PalTask {
     private String description;
     private long duration;
     private long elapsedTime;
-    private Date createdAt;
-    private Date expiresAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
     private boolean completed;
     private boolean running;
 
@@ -30,8 +32,8 @@ public class PalTask {
         this.description = description;
         this.duration = duration;
         this.elapsedTime = 0;
-        this.createdAt = new Date();
-        this.expiresAt = new Date(this.createdAt.getTime() + (duration * 1000));
+        this.createdAt = LocalDateTime.now();
+        this.expiresAt =  LocalDateTime.now().plusSeconds(this.duration);
         this.completed = false;
         this.running = false;
     }

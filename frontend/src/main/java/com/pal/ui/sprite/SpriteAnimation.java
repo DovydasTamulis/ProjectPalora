@@ -1,4 +1,4 @@
-package com.pal.ui;
+package com.pal.ui.sprite;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
