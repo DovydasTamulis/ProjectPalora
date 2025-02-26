@@ -1,7 +1,7 @@
 package com.pal.ui.login;
 
-import com.pal.ui.api.ApiClient;
 import com.pal.ui.MainApp;
+import com.pal.ui.api.ApiClient;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,12 +14,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 
-public class LoginScreen {
+public class RegisterScreen {
     private final MainApp mainApp;
+    private TextField usernameField;
     private TextField emailField;
     private PasswordField passwordField;
 
-    public LoginScreen(MainApp mainApp) {
+    public RegisterScreen(MainApp mainApp) {
         this.mainApp = mainApp;
     }
 
@@ -30,7 +31,7 @@ public class LoginScreen {
         // Load the CSS file
         grid.getStylesheets().add(getClass().getResource("/css/login-styles.css").toExternalForm());
 
-        return new Scene(grid, 450, 350);
+        return new Scene(grid, 450, 400);
     }
 
     private GridPane createMainGrid() {
@@ -45,16 +46,16 @@ public class LoginScreen {
 
     private void addUIComponents(GridPane grid) {
         // Title
-        Label titleLabel = new Label("Palora");
+        Label titleLabel = new Label("Register");
         titleLabel.getStyleClass().add("title"); // Apply CSS class
         grid.add(titleLabel, 0, 0, 2, 1);
         GridPane.setHalignment(titleLabel, HPos.CENTER);
 
-        // Subtitle
-        Label subtitle = new Label("Your Productivity Companion");
-        subtitle.getStyleClass().add("subtitle"); // Apply CSS class
-        grid.add(subtitle, 0, 1, 2, 1);
-        GridPane.setHalignment(subtitle, HPos.CENTER);
+        // Username Field
+        usernameField = new TextField();
+        usernameField.setPromptText("Username");
+        usernameField.getStyleClass().add("text-field"); // Apply CSS class
+        grid.add(usernameField, 0, 1);
 
         // Email Field
         emailField = new TextField();
@@ -74,42 +75,43 @@ public class LoginScreen {
 
         // Sign In Button
         Button loginButton = new Button("Sign In");
-        loginButton.getStyleClass().add("primary"); // Apply CSS class
-        loginButton.setOnAction(e -> handleLogin());
+        loginButton.getStyleClass().add("secondary"); // Apply CSS class
+        loginButton.setOnAction(e -> mainApp.showLoginScreen());
 
         // Register Button
         Button registerButton = new Button("Register");
-        registerButton.getStyleClass().add("secondary"); // Apply CSS class
-        registerButton.setOnAction(e -> mainApp.showRegisterScreen());
+        registerButton.getStyleClass().add("primary"); // Apply CSS class
+        registerButton.setOnAction(e -> handleRegistration());
 
         buttonBox.getChildren().addAll(loginButton, registerButton);
         grid.add(buttonBox, 0, 4);
-
-        // Add a link for registration below the buttons
-        Button registerLink = new Button("Don't have an account? Register here");
-        registerLink.getStyleClass().add("register-link"); // Apply CSS class
-        registerLink.setOnAction(e -> mainApp.showRegisterScreen());
-        grid.add(registerLink, 0, 5);
-        GridPane.setHalignment(registerLink, HPos.CENTER);
     }
 
-    private void handleLogin() {
+    private void handleRegistration() {
+        String username = usernameField.getText().trim();
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
 
-        if (email.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert("Validation Error", "Please fill in all fields", Alert.AlertType.ERROR);
             return;
         }
 
         try {
-            String token = ApiClient.loginUser(email, password);
-            mainApp.setAuthToken(token);
-            mainApp.setCurrentUserId(email);
-            mainApp.showMainInterface();
+            ApiClient.registerUser(username, email, password);
+            showAlert("Registration Successful",
+                    "Account created! Please log in with your credentials.",
+                    Alert.AlertType.INFORMATION);
+            clearFields();
         } catch (Exception e) {
-            showAlert("Login Failed", e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Registration Failed", e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    private void clearFields() {
+        usernameField.clear();
+        emailField.clear();
+        passwordField.clear();
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {

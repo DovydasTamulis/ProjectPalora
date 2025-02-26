@@ -8,9 +8,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,18 +55,23 @@ public class ApiClient {
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    public static void registerUser(String email, String password) throws IOException, InterruptedException {
+    public static void registerUser(String username, String email, String password) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
-        String jsonBody = String.format("{\"email\":\"%s\", \"passwordHash\":\"%s\"}", email, password);
 
+        // Create the JSON body for the request
+        String jsonBody = String.format("{\"username\":\"%s\", \"email\":\"%s\", \"passwordHash\":\"%s\"}", username, email, password);
+
+        // Build the HTTP request
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/users/register"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
+        // Send the request and handle the response
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+        // Check if the registration was successful
         if (response.statusCode() != 200) {
             throw new RuntimeException("Registration failed: " + response.body());
         }
@@ -264,6 +271,31 @@ public class ApiClient {
             return parseTaskFromJson(jsonData);
         }
         throw new RuntimeException("Failed to " + action + " task: " + response.body());
+    }
+
+    public static String sendMessageWithAuth(String authToken, String userMessage)
+            throws IOException, InterruptedException {
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be empty.");
+        }
+
+        String encodedMessage = URLEncoder.encode(userMessage.trim(), StandardCharsets.UTF_8);
+        String url = String.format("%s/chat/send?message=%s", BASE_URL, encodedMessage);
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + authToken)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            return response.body();
+        } else {
+            throw new RuntimeException("Failed to send message: " + response.body());
+        }
     }
 
     /**

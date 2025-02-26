@@ -1,0 +1,63 @@
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('/fonts/PressStart2P-Regular.ttf');
+}
+
+.root {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #2C2C2C;
+}
+
+.nav-bar {
+    -fx-background-color: #4A4A4A;
+    -fx-padding: 15px;
+    -fx-spacing: 20px;
+}
+
+.nav-button {
+    -fx-background-color: #537FE7;
+    -fx-text-fill: white;
+    -fx-padding: 12px 24px;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #7FDBFF;
+    -fx-scale: 1.05;
+}
+
+.character-container {
+    -fx-background-color: #3A3A3A;
+    -fx-padding: 20px;
+    -fx-border-radius: 8px;
+}
+
+.chat-box {
+    -fx-background-color: #4A4A4A;
+    -fx-border-left: 4px solid #537FE7;
+    -fx-padding: 15px;
+}
+
+.chat-text-area {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 12px;
+    -fx-text-fill: #F9F871;
+    -fx-background-color: #2C2C2C;
+    -fx-padding: 10px;
+}
+
+.chat-input-field {
+    -fx-prompt-text-fill: #7f8c8d;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #537FE7;
+    -fx-padding: 8px;
+}
+
+.chat-send-button {
+    -fx-background-color: #537FE7;
+    -fx-text-fill: white;
+    -fx-padding: 8px 16px;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}

@@ -38,6 +38,7 @@ public class PalTaskService {
                 task.getUserId(),
                 task.getTitle(),
                 task.getDescription(),
+                task.getStatus(),
                 task.getDuration()
         );
         return taskRepository.save(newTask);

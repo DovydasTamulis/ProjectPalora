@@ -3,9 +3,7 @@ package com.pal.model;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Setter
 @Getter
@@ -19,6 +17,7 @@ public class PalTask {
     private String userId;
     private String title;
     private String description;
+    private String status;
     private long duration;
     private long elapsedTime;
     private LocalDateTime createdAt;
@@ -26,10 +25,11 @@ public class PalTask {
     private boolean completed;
     private boolean running;
 
-    public PalTask(String userId, String title, String description, long duration) {
+    public PalTask(String userId, String title, String description,String status, long duration) {
         this.userId = userId;
         this.title = title;
         this.description = description;
+        this.status = status;
         this.duration = duration;
         this.elapsedTime = 0;
         this.createdAt = LocalDateTime.now();
